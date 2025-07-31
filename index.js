@@ -1,5 +1,5 @@
 const { Telegraf, Markup } = require('telegraf');
-require('dotenv').config();
+
 
 const bot = new Telegraf(process.env.BOT_TOKEN);
 const ADMIN_ID = '7738927680'; // Your Telegram user ID as admin
