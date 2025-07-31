@@ -74,6 +74,7 @@ bot.action('PLANS', async (ctx) => {
         [Markup.button.callback('TRC20: TE6cbin6JJ5EFVFBso6stgV9HM6X2wRgrP', 'copy_trc20')],
         [Markup.button.callback('BEP20: 0xA24313C602C240ce267367D5d3779d16A55fef52', 'copy_bep20')],
         [Markup.button.callback('SOLANA: 2rk4ZhN1ULNkuZaZodP3KR9b1bh3rZkQaA5B8YyJmuip', 'copy_solana')],
+        [Markup.button.url('📩 Contact Us Privately', 'https://t.me/livetradedm')],
       ])
     );
     lastReplyIds.set(ctx.from.id, sentMessage.message_id);
