@@ -1,13 +1,7 @@
 const { Telegraf, Markup } = require('telegraf');
 
-
 const bot = new Telegraf(process.env.BOT_TOKEN);
-const ADMIN_ID = '7738927680'; // Your Telegram user ID as admin
 
-// Maps admin reply message ID to user ID
-const replyMap = new Map();
-
-// === Start Menu ===
 bot.start((ctx) => {
   ctx.reply(
     '👋 Welcome to Live Trade Help Desk™\n\nChoose what you\'d like help with:',
@@ -22,7 +16,7 @@ bot.start((ctx) => {
   );
 });
 
-// === Action Handlers ===
+// Keep track of last reply message per user so we can delete it before sending new answer
 const lastReplyIds = new Map();
 
 async function sendAnswer(ctx, text) {
@@ -31,26 +25,41 @@ async function sendAnswer(ctx, text) {
     if (lastMessageId) {
       await ctx.deleteMessage(lastMessageId).catch(() => {});
     }
-    const sentMessage = await ctx.reply(text);
+    const sentMessage = await ctx.reply(
+      text,
+      Markup.inlineKeyboard([
+        [Markup.button.url('📩 Contact Us Privately', 'https://t.me/livetradedm')]
+      ])
+    );
     lastReplyIds.set(ctx.from.id, sentMessage.message_id);
   } catch (err) {
     console.error('Error handling message:', err);
   }
 }
 
-const responses = {
-  REVIEW: '📉 TRADE SETUP REVIEW\n\nPlease send the following:\n- 📸 A screenshot of your chart (MT4/MT5 or TradingView)...',
-  ACCOUNT: '📊 ACCOUNT HEALTH CHECK\n\nPlease send:\n- 📸 Screenshot of your account summary...',
-  PSYCH: '🧠 TRADE PSYCHOLOGY SUPPORT\n\nFeeling anxious, revenge trading, etc...',
-  FUNDED: '🏆 FUNDED ACCOUNT RISK ADVICE\n\nTaking a prop firm challenge? Please send...',
-  EMERGENCY: '🚨 EMERGENCY LIQUIDATION HELP\n\nIf you\'re close to a margin call or liquidation...',
-};
+bot.action('REVIEW', (ctx) => {
+  sendAnswer(ctx, '📉 TRADE SETUP REVIEW\n\nPlease send the following:\n- 📸 A screenshot of your chart (MT4/MT5 or TradingView)\n- ✍️ Entry, Stop Loss, and Take Profit levels\n- ⚙️ Any strategy or idea behind the trade\n\n✅ One of our professionals will respond shortly with feedback');
+  ctx.answerCbQuery();
+});
 
-Object.entries(responses).forEach(([key, message]) => {
-  bot.action(key, (ctx) => {
-    sendAnswer(ctx, message);
-    ctx.answerCbQuery();
-  });
+bot.action('ACCOUNT', (ctx) => {
+  sendAnswer(ctx, '📊 ACCOUNT HEALTH CHECK\n\nPlease send:\n- 📸 Screenshot of your account summary\n- 📄 Recent trades (last 5–10 if possible)\n- 🧮 Your balance, equity, margin level\n\nWe’ll give you a breakdown of:\n✅ Risk exposure\n✅ Lot sizing\n✅ Overtrading signs\n✅ Recommendations to stabilize your account');
+  ctx.answerCbQuery();
+});
+
+bot.action('PSYCH', (ctx) => {
+  sendAnswer(ctx, '🧠 TRADE PSYCHOLOGY SUPPORT\n\nFeeling:\n- Anxious?\n- Revenge trading?\n- Overthinking entries?\n- Excited?\n- Other\n\nA mindset specialist will help you re-center and act professionally.');
+  ctx.answerCbQuery();
+});
+
+bot.action('FUNDED', (ctx) => {
+  sendAnswer(ctx, '🏆 FUNDED ACCOUNT RISK ADVICE\n\nTaking a prop firm challenge?\n\nPlease send:\n- Screenshot of your challenge rules (drawdown, daily loss)\n- Screenshot of your trading stats / current trades\n- Your current balance, risk %, and goals\n\nWe’ll review if you\'re:\n✅ At risk of violation\n✅ Managing your lots correctly\n✅ On track to pass\n\nSupport available for FTMO, MyForexFunds, 5%ers, and more.');
+  ctx.answerCbQuery();
+});
+
+bot.action('EMERGENCY', (ctx) => {
+  sendAnswer(ctx, '🚨 EMERGENCY LIQUIDATION HELP\n\nIf you\'re close to a margin call or liquidation, do this now:\n\n1. Send a screenshot of all open trades\n2. Include balance, equity, margin %\n3. Tell us the pair(s) causing the issue\n\nA senior risk analyst will review and respond within 5–10 mins.\n\n⚠️ This is a high-priority, fast-response service.');
+  ctx.answerCbQuery();
 });
 
 bot.action('PLANS', async (ctx) => {
@@ -89,46 +98,6 @@ bot.action('copy_solana', (ctx) => {
   ctx.reply('2rk4ZhN1ULNkuZaZodP3KR9b1bh3rZkQaA5B8YyJmuip');
 });
 
-// === User Message Forwarding ===
-bot.on('message', async (ctx) => {
-  if (`${ctx.from.id}` === ADMIN_ID) return; // Don’t process your own messages
-
-  const userId = ctx.from.id;
-  const name = ctx.from.username ? `@${ctx.from.username}` : `${ctx.from.first_name} ${ctx.from.last_name || ''}`;
-
-  let forwarded;
-  if (ctx.message.text) {
-    forwarded = await bot.telegram.sendMessage(
-      ADMIN_ID,
-      `📩 Message from ${name} (${userId}):\n\n${ctx.message.text}`
-    );
-  } else if (ctx.message.photo) {
-    const caption = ctx.message.caption || '';
-    forwarded = await bot.telegram.sendPhoto(
-      ADMIN_ID,
-      ctx.message.photo[ctx.message.photo.length - 1].file_id,
-      { caption: `📷 From ${name} (${userId}): ${caption}` }
-    );
-  } else {
-    forwarded = await bot.telegram.forwardMessage(ADMIN_ID, ctx.chat.id, ctx.message.message_id);
-  }
-
-  // Save mapping of message ↔ user
-  if (forwarded) {
-    replyMap.set(forwarded.message_id, userId);
-  }
-});
-
-// === Admin Replies Back ===
-bot.on('text', async (ctx) => {
-  if (`${ctx.from.id}` !== ADMIN_ID) return;
-
-  const replyTo = ctx.message.reply_to_message;
-  if (replyTo && replyMap.has(replyTo.message_id)) {
-    const targetUserId = replyMap.get(replyTo.message_id);
-    await bot.telegram.sendMessage(targetUserId, `📬 Admin: ${ctx.message.text}`);
-  }
-});
-
 bot.launch();
-console.log('✅ Bot is running...');
+
+console.log('✅ Bot is running');
