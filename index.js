@@ -69,7 +69,7 @@ bot.action('PLANS', async (ctx) => {
       await ctx.deleteMessage(lastMessageId).catch(() => {});
     }
     const sentMessage = await ctx.reply(
-      '💳 SUBSCRIPTION PLANS – Get Full Access\n\n🟢 Starter – $29/month\n* 5 live support requests per week\n\n🔵 Pro – $79/month\n* * 10 Weekly Live support Requests\n* Biweekly “Trader Accountability Report”\n\n🟣 Elite – $199/month\n* Unlimited access\n* Emergency desk priority\n* Biweekly “Trader Accountability Report”\n\nPay with USDT (Copy  Address Manually):',
+      '💳 SUBSCRIPTION PLANS – Get Full Access\n\n🟢 Starter – $49/month\n* 5 live support requests per week\n\n🔵 Pro – $119/month\n* 10 Live support requests per week\n* ⁠Emergency Desk Priority\n* Biweekly “Trader Accountability Report”\n\n🟣 Elite – $299/month\n* Unlimited access\n* Emergency desk priority\n* ⁠Live Call Assistance\n* Biweekly “Trader Accountability Report”\n\nPay with USDT (Copy  Address Manually):',
       Markup.inlineKeyboard([
         [Markup.button.callback('TRC20: TE6cbin6JJ5EFVFBso6stgV9HM6X2wRgrP', 'copy_trc20')],
         [Markup.button.callback('BEP20: 0xA24313C602C240ce267367D5d3779d16A55fef52', 'copy_bep20')],
